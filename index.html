@@ -3,164 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>致富方案戰略中心 v4</title>
+    <title>致富方案戰略中心 v5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
         .card { background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         input { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; width: 100%; background: #f8fafc; font-weight: bold; }
-        .loading { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .price-input { background: #fffbeb; border-color: #fef3c7; color: #b45309; }
     </style>
 </head>
 <body class="bg-slate-50 p-4 pb-32">
 
     <div class="mb-6 text-center">
-        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">總資產價值 (M + R)</p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">目前總資產價值 (M + R)</p>
         <h1 id="totalAssets" class="text-4xl font-black text-slate-800">NT$ 0</h1>
         <div id="ratioDisplay" class="text-[10px] mt-2 font-bold text-slate-500 uppercase tracking-tighter">
-            🚀 正在連網取得即時報價...
+            等待計算中...
         </div>
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="card p-4 border-b-4 border-blue-500" onclick="toggleView()">
-            <p class="text-[10px] text-slate-400 font-bold">市場部位 M</p>
+        <div class="card p-4 border-b-4 border-blue-500">
+            <p class="text-[10px] text-slate-400 font-bold uppercase">市場部位 M</p>
             <p id="valM" class="text-lg font-black text-blue-600">--</p>
         </div>
         <div class="card p-4 border-b-4 border-green-500">
-            <p class="text-[10px] text-slate-400 font-bold">保留資金 R</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase">保留資金 R</p>
             <p id="valR" class="text-lg font-black text-green-600">--</p>
         </div>
     </div>
 
-    <div class="card p-4 mb-6 bg-slate-800 text-white">
-        <div class="flex justify-between text-[10px] font-bold opacity-60 mb-2">
-            <span>即時報價監控</span>
-            <span id="updateTime">更新中...</span>
-        </div>
-        <div class="grid grid-cols-3 gap-2 text-center">
+    <div class="card p-5 mb-6 border-2 border-amber-100">
+        <h2 class="font-black text-slate-700 mb-3 text-sm flex justify-between">
+            <span>📈 市場當前報價 (可修改)</span>
+            <span class="text-[10px] text-amber-500">輸入後自動重算</span>
+        </h2>
+        <div class="grid grid-cols-3 gap-3">
             <div>
-                <p class="text-[10px] opacity-60">00631L</p>
-                <p id="price631L" class="font-black text-yellow-400">---</p>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">00631L 價</label>
+                <input type="number" id="p631" class="price-input" step="0.01" oninput="run()">
             </div>
             <div>
-                <p class="text-[10px] opacity-60">QLD (USD)</p>
-                <p id="priceQLD" class="font-black text-yellow-400">---</p>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">QLD 價(USD)</label>
+                <input type="number" id="pQLD" class="price-input" step="0.01" oninput="run()">
             </div>
             <div>
-                <p class="text-[10px] opacity-60">美金匯率</p>
-                <p id="priceRate" class="font-black text-yellow-400">---</p>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">美金匯率</label>
+                <input type="number" id="pRate" class="price-input" step="0.01" oninput="run()">
             </div>
         </div>
     </div>
 
     <div class="card p-5 mb-6">
-        <h2 class="font-black text-slate-700 mb-4 text-sm">📊 實時倉位設定</h2>
+        <h2 class="font-black text-slate-700 mb-4 text-sm">📊 個人倉位設定</h2>
         <div class="space-y-4">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 mb-1">00631L 持有股數</label>
-                <input type="number" id="s631" oninput="run()">
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">00631L 持有總股數</label>
+                <input type="number" id="s631" placeholder="例如: 5000" oninput="run()">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 mb-1">QLD 持有股數</label>
-                <input type="number" id="sQLD" oninput="run()">
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">QLD 持有總股數</label>
+                <input type="number" id="sQLD" placeholder="例如: 120" oninput="run()">
             </div>
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 mb-1">保留資金 R (萬元)</label>
-                <input type="number" id="rInput" oninput="run()">
+                <input type="number" id="rInput" placeholder="例如: 500" oninput="run()">
             </div>
         </div>
     </div>
 
     <div class="fixed bottom-4 left-4 right-4 flex flex-col gap-2">
         <button onclick="calcDetailedBalance()" class="w-full bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition flex items-center justify-center gap-2">
-            ⚖️ 執行雙層平衡建議
+            ⚖️ 執行一鍵平衡計算 (M=R & 50/50)
         </button>
     </div>
 
     <div id="modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-6 z-50">
         <div class="bg-white rounded-3xl w-full p-6 shadow-2xl">
             <h3 class="font-black text-xl mb-4 text-slate-800">⚖️ 平衡操作建議</h3>
-            <div id="balanceResult" class="space-y-4 text-sm font-medium text-slate-600"></div>
-            <button onclick="closeModal()" class="w-full mt-6 bg-blue-600 text-white py-3 rounded-xl font-bold">收到</button>
+            <div id="balanceResult" class="space-y-4"></div>
+            <button onclick="closeModal()" class="w-full mt-6 bg-blue-600 text-white py-3 rounded-xl font-bold">確認</button>
         </div>
     </div>
 
     <script>
-        // 預設值 (若 API 失敗時使用)
-        let LIVE_P_631 = 360.35;
-        let LIVE_P_QLD = 71.73;
-        let LIVE_RATE = 31.31;
-        let showPercent = false;
-
-        async function fetchPrices() {
-            try {
-                // 這裡使用一個免費的公開 API 範例 (可替換成實際 Finnhub 等)
-                // 註：實際開發通常會串接特定財經 API，這裡先模擬抓取動作
-                document.getElementById('updateTime').innerText = "連線中...";
-                
-                // 模擬獲取 00631L (實際上需從台股 API 獲取)
-                // 模擬獲取 QLD 與匯率 (實際上需從美股 API 獲取)
-                
-                // 預定從 Yahoo Finance API 獲取數據的邏輯
-                // 由於瀏覽器 CORS 限制，建議你以後可申請一個免費 API Key
-                
-                // 假設抓取成功
-                document.getElementById('price631L').innerText = LIVE_P_631;
-                document.getElementById('priceQLD').innerText = LIVE_P_QLD;
-                document.getElementById('priceRate').innerText = LIVE_RATE;
-                document.getElementById('updateTime').innerText = new Date().toLocaleTimeString();
-                
-                run();
-            } catch (e) {
-                document.getElementById('updateTime').innerText = "報價抓取失敗";
-            }
-        }
+        // 初始預設值
+        const DEFAULT_631 = 265.50;
+        const DEFAULT_QLD = 108.40;
+        const DEFAULT_RATE = 32.50;
 
         window.onload = function() {
-            document.getElementById('s631').value = localStorage.getItem('s631') || 0;
-            document.getElementById('sQLD').value = localStorage.getItem('sQLD') || 0;
-            document.getElementById('rInput').value = localStorage.getItem('rInput') || 600;
-            fetchPrices(); // 開啟 App 自動抓取
+            // 讀取紀錄或使用預設值
+            document.getElementById('p631').value = localStorage.getItem('p631') || DEFAULT_631;
+            document.getElementById('pQLD').value = localStorage.getItem('pQLD') || DEFAULT_QLD;
+            document.getElementById('pRate').value = localStorage.getItem('pRate') || DEFAULT_RATE;
+            
+            document.getElementById('s631').value = localStorage.getItem('s631') || "";
+            document.getElementById('sQLD').value = localStorage.getItem('sQLD') || "";
+            document.getElementById('rInput').value = localStorage.getItem('rInput') || "";
+            run();
         };
 
         function run() {
+            // 抓取市價
+            const p631 = parseFloat(document.getElementById('p631').value) || 0;
+            const pQLD = parseFloat(document.getElementById('pQLD').value) || 0;
+            const pRate = parseFloat(document.getElementById('pRate').value) || 0;
+
+            // 抓取股數與資金
             const s631 = parseFloat(document.getElementById('s631').value) || 0;
             const sQLD = parseFloat(document.getElementById('sQLD').value) || 0;
             const rVal = (parseFloat(document.getElementById('rInput').value) || 0) * 10000;
 
+            // 儲存狀態
+            localStorage.setItem('p631', p631);
+            localStorage.setItem('pQLD', pQLD);
+            localStorage.setItem('pRate', pRate);
             localStorage.setItem('s631', s631);
             localStorage.setItem('sQLD', sQLD);
             localStorage.setItem('rInput', document.getElementById('rInput').value);
 
-            const totalM = (s631 * LIVE_P_631) + (sQLD * LIVE_P_QLD * LIVE_RATE);
+            // 計算市值 M
+            const m631 = s631 * p631;
+            const mQLD = sQLD * pQLD * pRate;
+            const totalM = m631 + mQLD;
             const totalAssets = totalM + rVal;
 
+            // 顯示數據
             document.getElementById('totalAssets').innerText = "NT$ " + Math.round(totalAssets).toLocaleString();
             document.getElementById('valM').innerText = Math.round(totalM/10000) + " 萬";
             document.getElementById('valR').innerText = Math.round(rVal/10000) + " 萬";
 
-            const mPct = totalAssets > 0 ? (totalM/totalAssets*100).toFixed(0) : 0;
-            document.getElementById('ratioDisplay').innerText = `M:R 佔比 = ${mPct}:${100-mPct}%`;
+            const mPct = totalAssets > 0 ? Math.round(totalM/totalAssets*100) : 0;
+            const twPct = totalM > 0 ? Math.round(m631/totalM*100) : 0;
+            const usPct = totalM > 0 ? Math.round(mQLD/totalM*100) : 0;
+            
+            document.getElementById('ratioDisplay').innerText = `M:R = ${mPct}:${100-mPct}% | 市場內比重 631L:${twPct}% / QLD:${usPct}%`;
         }
 
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
         function calcDetailedBalance() {
+            const p631 = parseFloat(document.getElementById('p631').value) || 1;
+            const pQLD = parseFloat(document.getElementById('pQLD').value) || 1;
+            const pRate = parseFloat(document.getElementById('pRate').value) || 1;
             const s631 = parseFloat(document.getElementById('s631').value) || 0;
             const sQLD = parseFloat(document.getElementById('sQLD').value) || 0;
             const rVal = (parseFloat(document.getElementById('rInput').value) || 0) * 10000;
-            const totalAssets = ((s631 * LIVE_P_631) + (sQLD * LIVE_P_QLD * LIVE_RATE)) + rVal;
 
-            const targetAsset = totalAssets / 4; 
-            const diff631 = (targetAsset / LIVE_P_631) - s631;
-            const diffQLD = ((targetAsset / LIVE_RATE) / LIVE_P_QLD) - sQLD;
+            const totalM = (s631 * p631) + (sQLD * pQLD * pRate);
+            const totalAssets = totalM + rVal;
 
-            document.getElementById('balanceResult').innerHTML = `
-                <p>00631L：${diff631 >= 0 ? '買入' : '賣出'} <b>${Math.abs(Math.round(diff631))}</b> 股</p>
-                <p>QLD：${diffQLD >= 0 ? '買入' : '賣出'} <b>${Math.abs(Math.round(diffQLD))}</b> 股</p>
+            // 目標分佈：R 50%, 631L 25%, QLD 25% (以總額度計算)
+            const targetTWD_Each = totalAssets / 4;
+            const targetR = totalAssets / 2;
+
+            const diff631 = (targetTWD_Each / p631) - s631;
+            const diffQLD = ((targetTWD_Each / pRate) / pQLD) - s631; // 修正邏輯
+            const diffQLD_actual = ((targetTWD_Each / pRate) / pQLD) - sQLD;
+            const diffR = (targetR - rVal) / 10000;
+
+            let html = `
+                <div class="p-3 bg-blue-50 rounded-xl border-l-4 border-blue-500 mb-2">
+                    <p class="text-xs text-blue-600 font-bold">00631L 調整</p>
+                    <p class="text-lg font-black">${diff631 >= 0 ? '買入' : '賣出'} ${Math.abs(Math.round(diff631)).toLocaleString()} 股</p>
+                </div>
+                <div class="p-3 bg-indigo-50 rounded-xl border-l-4 border-indigo-500 mb-2">
+                    <p class="text-xs text-indigo-600 font-bold">QLD 調整</p>
+                    <p class="text-lg font-black">${diffQLD_actual >= 0 ? '買入' : '賣出'} ${Math.abs(Math.round(diffQLD_actual)).toLocaleString()} 股</p>
+                </div>
+                <div class="p-3 bg-green-50 rounded-xl border-l-4 border-green-500">
+                    <p class="text-xs text-green-600 font-bold">保留資金 R 調整</p>
+                    <p class="text-lg font-black">${diffR >= 0 ? '補入' : '提到'} ${Math.abs(Math.round(diffR)).toLocaleString()} 萬元</p>
+                </div>
             `;
+            
+            document.getElementById('balanceResult').innerHTML = html;
             document.getElementById('modal').style.display = 'flex';
         }
     </script>
