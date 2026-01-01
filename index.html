@@ -3,84 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>致富方案交易帳簿</title>
+    <title>致富方案 v6.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; background: #f1f5f9; }
         .card { background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .btn-primary { background: #1e293b; color: white; font-weight: 800; padding: 12px; border-radius: 12px; }
         .input-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; width: 100%; background: #f8fafc; font-size: 14px; }
-        .stock-tag { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
+        .tab-active { background: #1e293b; color: white; }
+        .tab-inactive { background: #e2e8f0; color: #64748b; }
     </style>
 </head>
-<body class="p-4 pb-40">
+<body class="p-4 pb-44">
 
-    <div class="card p-6 mb-4 text-center">
-        <p class="text-[10px] text-slate-400 font-bold tracking-widest mb-1 uppercase">總資產價值 (M + R)</p>
-        <h1 id="totalAssets" class="text-3xl font-black text-slate-800">NT$ 0</h1>
-        <div id="ratioDisplay" class="text-[11px] mt-2 font-bold text-slate-500">M:R 計算中...</div>
+    <div class="flex justify-between items-center mb-2 px-1">
+        <span class="text-[10px] font-black bg-blue-600 text-white px-2 py-1 rounded tracking-tighter">VERSION 6.2 買賣全功能版</span>
+        <span id="updateTime" class="text-[10px] text-slate-400 font-bold">2026 戰略佈局</span>
+    </div>
+
+    <div class="card p-6 mb-4 text-center border-t-4 border-blue-600">
+        <p class="text-[10px] text-slate-400 font-bold tracking-widest mb-1 uppercase">目前總資產淨值</p>
+        <h1 id="totalAssets" class="text-3xl font-black text-slate-800 tracking-tighter">NT$ 0</h1>
+        <div id="ratioDisplay" class="text-[11px] mt-2 font-bold text-slate-500 italic">計算中...</div>
     </div>
 
     <div class="grid grid-cols-3 gap-3 mb-4">
         <div class="card p-3">
             <p class="text-[10px] text-slate-400 font-bold mb-1">00631L 市價</p>
-            <input type="number" id="curP631" class="input-box bg-yellow-50 text-amber-700" oninput="run()" value="265">
+            <input type="number" id="curP631" class="input-box bg-yellow-50 font-bold" oninput="run()">
         </div>
         <div class="card p-3">
             <p class="text-[10px] text-slate-400 font-bold mb-1">QLD 市價</p>
-            <input type="number" id="curPQLD" class="input-box bg-yellow-50 text-amber-700" oninput="run()" value="108">
+            <input type="number" id="curPQLD" class="input-box bg-yellow-50 font-bold" oninput="run()">
         </div>
         <div class="card p-3">
-            <p class="text-[10px] text-slate-400 font-bold mb-1">保留資金 R(萬)</p>
-            <input type="number" id="rInput" class="input-box bg-green-50 text-green-700 font-black" oninput="run()" value="500">
+            <p class="text-[10px] text-slate-400 font-bold mb-1">本金 R(萬)</p>
+            <input type="number" id="rInput" class="input-box bg-green-50 text-green-700 font-black" oninput="run()">
         </div>
     </div>
 
-    <div class="card p-4 mb-4 border-2 border-blue-100">
-        <h2 class="text-sm font-black mb-3 text-slate-700">🆕 新增加碼紀錄</h2>
+    <div class="card p-4 mb-4 border-2 border-slate-200">
+        <div class="flex gap-2 mb-3">
+            <button id="btnBuy" onclick="setMode('buy')" class="flex-1 py-1 text-[10px] font-black rounded-full tab-active">買入入庫</button>
+            <button id="btnSell" onclick="setMode('sell')" class="flex-1 py-1 text-[10px] font-black rounded-full tab-inactive">賣出減倉</button>
+        </div>
         <div class="grid grid-cols-2 gap-2 mb-2">
-            <select id="newType" class="input-box">
+            <select id="newType" class="input-box font-bold">
                 <option value="00631L">00631L (台股)</option>
                 <option value="QLD">QLD (美股)</option>
             </select>
-            <input type="number" id="newQty" class="input-box" placeholder="買入股數">
+            <input type="number" id="newQty" class="input-box" placeholder="股數">
         </div>
-        <div class="grid grid-cols-2 gap-2 mb-3">
+        <div class="grid grid-cols-2 gap-2 mb-1">
             <input type="number" id="newPrice" class="input-box" placeholder="成交單價">
-            <button onclick="addTrade()" class="bg-blue-600 text-white font-black rounded-lg">新增紀錄</button>
+            <button id="addBtn" onclick="addTrade()" class="bg-blue-600 text-white font-black rounded-lg active:scale-95 transition">確認新增</button>
         </div>
     </div>
 
-    <h2 class="text-sm font-black mb-2 text-slate-600 px-1">📜 歷史加碼清單</h2>
-    <div id="tradeList" class="space-y-2 mb-6">
-        </div>
+    <div class="flex justify-between items-center mb-2 px-1">
+        <h2 class="text-sm font-black text-slate-600 italic">📜 Transaction Logs</h2>
+        <span id="recordCount" class="text-[10px] font-bold text-slate-400">0 records</span>
+    </div>
+    <div id="tradeList" class="space-y-2 mb-6"></div>
 
     <div class="fixed bottom-4 left-4 right-4 space-y-2">
         <div class="grid grid-cols-2 gap-2 text-[10px] text-center mb-2">
-            <div class="bg-white p-2 rounded-lg shadow">美金匯率: <input type="number" id="pRate" value="32.5" class="w-10 text-center" oninput="run()"></div>
-            <button onclick="clearAll()" class="bg-red-50 text-red-400 rounded-lg shadow">清除所有紀錄</button>
+            <div class="bg-white p-2 rounded-xl shadow border border-slate-100 font-bold text-slate-500">
+                USD/TWD: <input type="number" id="pRate" value="32.5" class="w-8 text-center text-blue-600" oninput="run()">
+            </div>
+            <button onclick="clearAll()" class="bg-white p-2 rounded-xl shadow border border-red-100 text-red-400 font-bold uppercase tracking-tighter">Reset Data</button>
         </div>
-        <button onclick="calcBalance()" class="w-full btn-primary shadow-xl flex items-center justify-center gap-2">
-            ⚖️ 執行 M=R 平衡建議
+        <button onclick="calcBalance()" class="w-full btn-primary shadow-2xl py-4 flex items-center justify-center gap-2 active:scale-95 transition">
+            ⚖️ 執行 M=R 戰略平衡建議
         </button>
     </div>
 
-    <div id="modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-6 z-50">
+    <div id="modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-6 z-50 backdrop-blur-sm">
         <div class="bg-white rounded-3xl w-full p-6 shadow-2xl max-w-sm">
-            <h3 class="font-black text-xl mb-4">⚖️ 策略平衡建議</h3>
+            <h3 class="font-black text-xl mb-4 text-slate-800">⚖️ 戰略平衡建議</h3>
             <div id="res" class="space-y-3"></div>
-            <button onclick="document.getElementById('modal').classList.add('hidden')" class="w-full mt-6 bg-slate-800 text-white py-3 rounded-xl font-bold">關閉</button>
+            <button onclick="document.getElementById('modal').classList.add('hidden')" class="w-full mt-6 bg-slate-800 text-white py-3 rounded-xl font-bold">了解，執行操作</button>
         </div>
     </div>
 
     <script>
         let trades = JSON.parse(localStorage.getItem('myTrades')) || [];
+        let currentMode = 'buy';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btnBuy').className = mode === 'buy' ? 'flex-1 py-1 text-[10px] font-black rounded-full tab-active' : 'flex-1 py-1 text-[10px] font-black rounded-full tab-inactive';
+            document.getElementById('btnSell').className = mode === 'sell' ? 'flex-1 py-1 text-[10px] font-black rounded-full tab-active' : 'flex-1 py-1 text-[10px] font-black rounded-full tab-inactive';
+            document.getElementById('addBtn').className = mode === 'buy' ? 'bg-blue-600 text-white font-black rounded-lg active:scale-95 transition' : 'bg-red-500 text-white font-black rounded-lg active:scale-95 transition';
+        }
 
         function addTrade() {
             const type = document.getElementById('newType').value;
-            const qty = parseFloat(document.getElementById('newQty').value);
+            let qty = parseFloat(document.getElementById('newQty').value);
             const price = parseFloat(document.getElementById('newPrice').value);
-            if (!qty || !price) return alert("請輸入股數與單價");
+            if (!qty || !price) return alert("請輸入完整資料");
+
+            if(currentMode === 'sell') qty = -Math.abs(qty); // 賣出存為負數
 
             trades.push({ id: Date.now(), type, qty, price, date: new Date().toLocaleDateString() });
             localStorage.setItem('myTrades', JSON.stringify(trades));
@@ -91,16 +114,16 @@
         }
 
         function deleteTrade(id) {
-            trades = trades.filter(t => t.id !== id);
-            localStorage.setItem('myTrades', JSON.stringify(trades));
-            run();
+            if(confirm("刪除此紀錄？")) {
+                trades = trades.filter(t => t.id !== id);
+                localStorage.setItem('myTrades', JSON.stringify(trades));
+                run();
+            }
         }
 
         function clearAll() {
-            if(confirm("確定要刪除所有交易紀錄嗎？")) {
-                trades = [];
-                localStorage.clear();
-                location.reload();
+            if(confirm("確定清空所有數據？")) {
+                trades = []; localStorage.clear(); location.reload();
             }
         }
 
@@ -114,46 +137,45 @@
             localStorage.setItem('curPQLD', curPQLD);
             localStorage.setItem('rInput', document.getElementById('rInput').value);
 
-            let totalM631 = 0;
-            let totalMQLD = 0;
+            let totalM631 = 0, totalMQLD = 0, s631Count = 0, sQLDCount = 0;
             let listHtml = "";
 
-            trades.forEach(t => {
+            trades.slice().reverse().forEach(t => {
                 const is631 = t.type === "00631L";
-                const currentPrice = is631 ? curP631 : curPQLD;
-                const value = is631 ? (t.qty * currentPrice) : (t.qty * currentPrice * curRate);
-                const cost = is631 ? (t.qty * t.price) : (t.qty * t.price * curRate);
-                const profit = value - cost;
-                const profitPct = ((profit/cost)*100).toFixed(1);
+                const isSell = t.qty < 0;
+                if(is631) s631Count += t.qty; else sQLDCount += t.qty;
 
-                if(is631) totalM631 += value; else totalMQLD += value;
+                const currentVal = is631 ? (t.qty * curP631) : (t.qty * curPQLD * curRate);
+                if(is631) totalM631 += currentVal; else totalMQLD += currentVal;
 
                 listHtml += `
-                    <div class="card p-3 flex justify-between items-center border-l-4 ${is631 ? 'border-blue-500' : 'border-indigo-500'}">
-                        <div>
-                            <span class="stock-tag ${is631 ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'}">${t.type}</span>
-                            <span class="text-xs font-bold text-slate-500 ml-2">${t.qty}股 @ ${t.price}</span>
-                            <div class="text-[10px] text-slate-400">${t.date}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-black text-sm">NT$ ${Math.round(value).toLocaleString()}</div>
-                            <div class="text-[10px] font-bold ${profit >= 0 ? 'text-red-500' : 'text-green-500'}">
-                                ${profit >= 0 ? '▲' : '▼'} ${Math.abs(profitPct)}%
+                    <div class="card p-3 flex justify-between items-center border-l-4 ${isSell ? 'border-red-400 bg-red-50/20' : (is631 ? 'border-blue-500' : 'border-indigo-500')}">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${isSell ? 'bg-red-100 text-red-600' : (is631 ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700')}">
+                                    ${isSell ? 'SELL' : 'BUY'} ${t.type}
+                                </span>
+                                <span class="text-xs font-black text-slate-700">${Math.abs(t.qty).toLocaleString()} 股</span>
                             </div>
+                            <div class="text-[9px] text-slate-400 font-bold mt-1">成交價: ${t.price} / ${t.date}</div>
                         </div>
-                        <button onclick="deleteTrade(${t.id})" class="ml-3 text-slate-300">✕</button>
+                        <div class="text-right mr-4">
+                            <div class="font-black text-xs text-slate-600 italic">估值 NT$ ${Math.round(Math.abs(currentVal)).toLocaleString()}</div>
+                        </div>
+                        <button onclick="deleteTrade(${t.id})" class="text-slate-300">✕</button>
                     </div>
                 `;
             });
 
-            document.getElementById('tradeList').innerHTML = listHtml || "<p class='text-center text-slate-400 py-4 text-xs'>尚無加碼紀錄</p>";
+            document.getElementById('tradeList').innerHTML = listHtml || "<p class='text-center py-10 text-slate-400 text-xs font-bold'>No data available.</p>";
+            document.getElementById('recordCount').innerText = `${trades.length} records`;
             
             const totalM = totalM631 + totalMQLD;
             const totalAssets = totalM + rVal;
             document.getElementById('totalAssets').innerText = "NT$ " + Math.round(totalAssets).toLocaleString();
             
             const mPct = totalAssets > 0 ? Math.round(totalM/totalAssets*100) : 0;
-            document.getElementById('ratioDisplay').innerText = `M:R = ${mPct}:${100-mPct}% | 總市值 M: ${Math.round(totalM/10000)}萬 / R: ${Math.round(rVal/10000)}萬`;
+            document.getElementById('ratioDisplay').innerText = `Current M:R = ${mPct}:${100-mPct}% | 持有股數: 631L(${Math.round(s631Count)}), QLD(${Math.round(sQLDCount)})`;
         }
 
         function calcBalance() {
@@ -167,7 +189,6 @@
 
             const totalM = (s631 * curP631) + (sQLD * curPQLD * curRate);
             const totalAssets = totalM + rVal;
-
             const targetAsset = totalAssets / 4;
             const targetR = totalAssets / 2;
 
@@ -176,9 +197,18 @@
             const dR = (targetR - rVal) / 10000;
 
             document.getElementById('res').innerHTML = `
-                <div class="bg-blue-50 p-3 rounded-lg"><p class="text-[10px] text-blue-500">00631L 目標</p><p class="font-black">${d631>=0?'買入':'賣出'} ${Math.abs(Math.round(d631))} 股</p></div>
-                <div class="bg-indigo-50 p-3 rounded-lg"><p class="text-[10px] text-indigo-500">QLD 目標</p><p class="font-black">${dQLD>=0?'買入':'賣出'} ${Math.abs(Math.round(dQLD))} 股</p></div>
-                <div class="bg-green-50 p-3 rounded-lg"><p class="text-[10px] text-green-500">保留資金 R 調整</p><p class="font-black">${dR>=0?'補入':'提到'} ${Math.abs(Math.round(dR))} 萬元</p></div>
+                <div class="bg-blue-50 p-4 rounded-2xl border-l-4 border-blue-400">
+                    <p class="text-[9px] text-blue-500 font-black">00631L 建議方向</p>
+                    <p class="text-lg font-black">${d631>=0?'加碼購買':'減倉賣出'} ${Math.abs(Math.round(d631)).toLocaleString()} 股</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-2xl border-l-4 border-indigo-400">
+                    <p class="text-[9px] text-indigo-500 font-black">QLD 建議方向</p>
+                    <p class="text-lg font-black">${dQLD>=0?'加碼購買':'減倉賣出'} ${Math.abs(Math.round(dQLD)).toLocaleString()} 股</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-2xl border-l-4 border-green-400">
+                    <p class="text-[9px] text-green-500 font-black">現金 R 調整</p>
+                    <p class="text-lg font-black">${dR>=0?'應補入':'可提取'} ${Math.abs(Math.round(dR))} 萬元</p>
+                </div>
             `;
             document.getElementById('modal').classList.remove('hidden');
         }
