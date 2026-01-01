@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>致富方案戰略中心 v3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        input { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; width: 100%; background: #f8fafc; font-weight: bold; }
+        .log-item { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 p-4 pb-32">
+
+    <div class="mb-6 text-center">
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">總資產價值 (M + R)</p>
+        <h1 id="totalAssets" class="text-4xl font-black text-slate-800">NT$ 0</h1>
+        <div id="ratioDisplay" class="text-[10px] mt-2 font-bold text-slate-500 uppercase tracking-tighter">
+            等待計算...
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="card p-4 border-b-4 border-blue-500" onclick="toggleView()">
+            <p class="text-[10px] text-slate-400 font-bold">市場部位 M</p>
+            <p id="valM" class="text-lg font-black text-blue-600">--</p>
+        </div>
+        <div class="card p-4 border-b-4 border-green-500">
+            <p class="text-[10px] text-slate-400 font-bold">保留資金 R</p>
+            <p id="valR" class="text-lg font-black text-green-600">--</p>
+        </div>
+    </div>
+
+    <div class="card p-5 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="font-black text-slate-700">📊 實時倉位設定</h2>
+            <button onclick="toggleView()" class="text-[10px] bg-slate-200 px-2 py-1 rounded font-bold text-slate-500">切換 % / 金額</button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                    <span>00631L 股數</span>
+                    <span id="p631l_val" class="text-blue-500"></span>
+                </div>
+                <input type="number" id="s631" oninput="run()">
+            </div>
+            <div>
+                <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                    <span>QLD 股數</span>
+                    <span id="pqld_val" class="text-blue-500"></span>
+                </div>
+                <input type="number" id="sQLD" oninput="run()">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">保留資金 R (萬元)</label>
+                <input type="number" id="rInput" oninput="run()">
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-5 mb-6">
+        <h2 class="font-black text-slate-700 mb-3 text-sm">📝 加碼流水帳 (影響 M 成本)</h2>
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="logNote" placeholder="項目" class="text-sm">
+            <input type="number" id="logAmt" placeholder="萬" class="w-20 text-sm">
+            <button onclick="addLog()" class="bg-blue-600 text-white px-4 rounded-lg font-bold">+</button>
+        </div>
+        <div id="logList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+    </div>
+
+    <div class="fixed bottom-4 left-4 right-4 flex flex-col gap-2">
+        <button onclick="calcDetailedBalance()" class="w-full bg-slate-800 text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition flex items-center justify-center gap-2">
+            <span>⚖️</span> 執行雙層平衡建議
+        </button>
+        <div class="flex gap-2">
+            <button onclick="location.reload()" class="flex-1 bg-white border border-slate-200 text-slate-500 py-3 rounded-xl font-bold text-sm">重整現價</button>
+            <button onclick="resetData()" class="px-6 bg-red-50 text-red-400 py-3 rounded-xl font-bold text-sm">清空</button>
+
+        </div>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-3xl w-full p-6 shadow-2xl">
+            <h3 class="font-black text-xl mb-4 text-slate-800">⚖️ 平衡操作建議</h3>
+            <div id="balanceResult" class="space-y-4 text-sm font-medium text-slate-600"></div>
+            <button onclick="closeModal()" class="w-full mt-6 bg-blue-600 text-white py-3 rounded-xl font-bold">收到，我會去下單</button>
+        </div>
+    </div>
+
+    <script>
+        const P_631 = 360.35;
+        const P_QLD = 71.73;
+        const RATE = 31.314;
+        let showPercent = false;
+
+        window.onload = function() {
+            document.getElementById('s631').value = localStorage.getItem('s631') || 0;
+            document.getElementById('sQLD').value = localStorage.getItem('sQLD') || 0;
+            document.getElementById('rInput').value = localStorage.getItem('rInput') || 600;
+            renderLogs();
+            run();
+        };
+
+        function toggleView() { showPercent = !showPercent; run(); }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        function run() {
+            const s631 = parseFloat(document.getElementById('s631').value) || 0;
+            const sQLD = parseFloat(document.getElementById('sQLD').value) || 0;
+            const rVal = (parseFloat(document.getElementById('rInput').value) || 0) * 10000;
+
+            localStorage.setItem('s631', s631);
+            localStorage.setItem('sQLD', sQLD);
+            localStorage.setItem('rInput', document.getElementById('rInput').value);
+
+            const m631 = s631 * P_631;
+            const mQLD = sQLD * P_QLD * RATE;
+            const totalM = m631 + mQLD;
+            const totalAssets = totalM + rVal;
+
+            document.getElementById('totalAssets').innerText = "NT$ " + Math.round(totalAssets).toLocaleString();
+            document.getElementById('p631l_val').innerText = "約 NT$ " + Math.round(m631).toLocaleString();
+            document.getElementById('pqld_val').innerText = "約 NT$ " + Math.round(mQLD).toLocaleString();
+
+            if(showPercent && totalAssets > 0) {
+                document.getElementById('valM').innerText = ((totalM/totalAssets)*100).toFixed(1) + "%";
+                document.getElementById('valR').innerText = ((rVal/totalAssets)*100).toFixed(1) + "%";
+            } else {
+                document.getElementById('valM').innerText = Math.round(totalM/10000) + " 萬";
+                document.getElementById('valR').innerText = Math.round(rVal/10000) + " 萬";
+            }
+
+            const mPct = totalAssets > 0 ? (totalM/totalAssets*100).toFixed(0) : 0;
+            const twPct = totalM > 0 ? (m631/totalM*100).toFixed(0) : 0;
+            const usPct = totalM > 0 ? (mQLD/totalM*100).toFixed(0) : 0;
+            document.getElementById('ratioDisplay').innerText = `M:R = ${mPct}:${100-mPct}% | 市場內 631L:${twPct}% QLD:${usPct}%`;
+        }
+
+        function calcDetailedBalance() {
+            const s631 = parseFloat(document.getElementById('s631').value) || 0;
+            const sQLD = parseFloat(document.getElementById('sQLD').value) || 0;
+            const rVal = (parseFloat(document.getElementById('rInput').value) || 0) * 10000;
+            const totalM = (s631 * P_631) + (sQLD * P_QLD * RATE);
+            const totalAssets = totalM + rVal;
+
+            // 目標：R佔50%, 631L佔25%, QLD佔25%
+            const targetEachAssetTWD = totalAssets / 4;
+            const targetR = totalAssets / 2;
+
+            const diff631L_shares = (targetEachAssetTWD / P_631) - s631;
+            const diffQLD_shares = ((targetEachAssetTWD / RATE) / P_QLD) - sQLD;
+            const diffR_TWD = targetR - rVal;
+
+            let resultHTML = "";
+            
+            // 00631L 建議
+            resultHTML += `<div class="p-3 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                <p class="text-blue-700 font-bold">00631L (台股正二)</p>
+                <p class="text-lg">${diff631L_shares >= 0 ? '加碼買入' : '減碼賣出'} <span class="font-black">${Math.abs(Math.round(diff631L_shares))}</span> 股</p>
+            </div>`;
+
+            // QLD 建議
+            resultHTML += `<div class="p-3 bg-indigo-50 rounded-xl border-l-4 border-indigo-500">
+                <p class="text-indigo-700 font-bold">QLD (美股 QQQ 正二)</p>
+                <p class="text-lg">${diffQLD_shares >= 0 ? '加碼買入' : '減碼賣出'} <span class="font-black">${Math.abs(Math.round(diffQLD_shares))}</span> 股</p>
+            </div>`;
+
+            // R 建議
+            resultHTML += `<div class="p-3 bg-green-50 rounded-xl border-l-4 border-green-500">
+                <p class="text-green-700 font-bold">保留資金 R</p>
+                <p class="text-lg">${diffR_TWD >= 0 ? '補足資金' : '提領資金'} <span class="font-black">${Math.abs(Math.round(diffR_TWD/10000))}</span> 萬元</p>
+            </div>`;
+
+            document.getElementById('balanceResult').innerHTML = resultHTML;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function addLog() {
+            const note = document.getElementById('logNote').value || "加碼";
+            const amt = document.getElementById('logAmt').value;
+            if(!amt) return;
+            const logs = JSON.parse(localStorage.getItem('wealthLogs') || '[]');
+            logs.unshift({ id: Date.now(), note, amt });
+            localStorage.setItem('wealthLogs', JSON.stringify(logs));
+            document.getElementById('logNote').value = ""; document.getElementById('logAmt').value = "";
+            renderLogs(); run();
+        }
+
+        function deleteLog(id) {
+            let logs = JSON.parse(localStorage.getItem('wealthLogs') || '[]');
+            logs = logs.filter(l => l.id !== id);
+            localStorage.setItem('wealthLogs', JSON.stringify(logs));
+            renderLogs(); run();
+        }
+
+        function renderLogs() {
+            const logs = JSON.parse(localStorage.getItem('wealthLogs') || '[]');
+            document.getElementById('logList').innerHTML = logs.map(l => `
+                <div class="flex justify-between items-center bg-slate-100 p-2 rounded-lg log-item">
+                    <span class="text-xs font-bold text-slate-600">${l.note}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-black text-blue-600">${l.amt} 萬</span>
+                        <button onclick="deleteLog(${l.id})" class="text-red-400 font-bold px-2">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function resetData() { if(confirm("確定清空嗎？")) { localStorage.clear(); location.reload(); } }
+    </script>
+</body>
+</html>
