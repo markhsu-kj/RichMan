@@ -3,107 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>致富方案 v6.4 - 深度分析版</title>
+    <title>致富方案 v6.6 - 精確戰略版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; background: #f8fafc; }
-        .card { background: white; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
-        .input-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px; width: 100%; background: #f8fafc; font-size: 13px; font-weight: bold; }
-        .stat-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-        .stat-value { font-size: 16px; font-weight: 900; color: #1e293b; }
+        body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; background: #f1f5f9; padding-bottom: 180px; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .input-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px; width: 100%; background: #ffffff; font-size: 14px; font-weight: 800; }
+        .price-input { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .tab-active { background: #1e293b; color: white; }
     </style>
 </head>
-<body class="p-4 pb-48">
+<body class="p-4">
 
-    <div class="mb-6">
-        <div class="flex justify-between items-end mb-1 px-1">
-            <span class="text-[10px] font-black bg-slate-800 text-white px-2 py-0.5 rounded">V6.4 ANALYSIS</span>
-            <span id="updateTime" class="text-[10px] text-slate-400 font-bold">同步中...</span>
-        </div>
-        <div class="card p-6 border-b-4 border-slate-800 text-center">
-            <p class="stat-label mb-1">總資產淨值 (M + R)</p>
-            <h1 id="totalAssets" class="text-4xl font-black text-slate-800 tracking-tighter">NT$ 0</h1>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="card p-4 border-l-4 border-blue-500">
-            <p class="stat-label">市場現值 M</p>
-            <p id="totalMValue" class="stat-value text-blue-600">--</p>
-        </div>
-        <div class="card p-4 border-l-4 border-green-500">
-            <p class="stat-label">保留資金 R</p>
-            <p id="totalRValue" class="stat-value text-green-600">--</p>
-        </div>
-    </div>
-
-    <div class="card p-4 mb-6">
-        <h2 class="text-xs font-black text-slate-400 mb-4 uppercase tracking-widest text-center">資產權重分配</h2>
-        <div style="height: 180px;"><canvas id="ratioChart"></canvas></div>
-    </div>
-
-    <div class="card p-5 mb-6 bg-slate-900 text-white">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest">投資績效戰報</h2>
-            <button onclick="toggleProfitView()" class="text-[10px] bg-slate-700 px-2 py-1 rounded-md font-bold">切換 額/%</button>
-        </div>
-        
-        <div class="space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <span class="text-xs font-bold text-slate-400">總庫存合計</span>
-                <div class="text-right">
-                    <div id="aggValue" class="font-black text-lg">--</div>
-                    <div id="aggProfit" class="text-[10px] font-bold">--</div>
-                </div>
+    <div class="card p-6 mb-4 text-center border-t-8 border-slate-800">
+        <p class="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-1">Total Net Assets (M + R)</p>
+        <h1 id="totalAssets" class="text-4xl font-black text-slate-800 tracking-tighter">NT$ 0</h1>
+        <div class="flex justify-center gap-4 mt-4 pt-4 border-t border-slate-50">
+            <div class="text-left">
+                <p class="text-[9px] font-bold text-slate-400 uppercase">市場現值 M</p>
+                <p id="totalMValue" class="text-lg font-black text-blue-600">--</p>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <p class="text-[9px] font-bold text-blue-400 mb-1">00631L (台股)</p>
-                    <p id="twValue" class="text-sm font-black">--</p>
-                    <p id="twProfit" class="text-[10px] font-bold">--</p>
-                </div>
-                <div>
-                    <p class="text-[9px] font-bold text-indigo-400 mb-1">QLD (美股)</p>
-                    <p id="usValue" class="text-sm font-black">--</p>
-                    <p id="usProfit" class="text-[10px] font-bold">--</p>
-                </div>
+            <div class="text-left border-l pl-4">
+                <p class="text-[9px] font-bold text-slate-400 uppercase">保留資金 R</p>
+                <p id="totalRValue" class="text-lg font-black text-green-600">--</p>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-2 mb-6">
-        <div><p class="stat-label mb-1">631L 市價</p><input type="number" id="curP631" class="input-box" oninput="run()"></div>
-        <div><p class="stat-label mb-1">QLD 市價</p><input type="number" id="curPQLD" class="input-box" oninput="run()"></div>
-        <div><p class="stat-label mb-1">R (萬)</p><input type="number" id="rInput" class="input-box text-green-600" oninput="run()"></div>
+    <div class="grid grid-cols-5 gap-4 mb-4">
+        <div class="col-span-3 card p-4 bg-slate-900 text-white">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-black text-slate-400">績效分析</span>
+                <button onclick="toggleProfitView()" class="text-[9px] bg-slate-700 px-2 py-0.5 rounded">NT$ / %</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <div class="flex justify-between text-[11px] mb-1"><span>00631L</span><span id="twProfit" class="font-bold">--</span></div>
+                    <div id="twValue" class="text-sm font-black text-blue-400">--</div>
+                </div>
+                <div class="border-t border-slate-800 pt-2">
+                    <div class="flex justify-between text-[11px] mb-1"><span>QLD (美)</span><span id="usProfit" class="font-bold">--</span></div>
+                    <div id="usValue" class="text-sm font-black text-indigo-400">--</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-span-2 card p-2 flex items-center justify-center">
+            <canvas id="ratioChart"></canvas>
+        </div>
     </div>
 
-    <div class="card p-4 mb-6 border-dashed border-2 border-slate-200">
+    <div class="grid grid-cols-3 gap-2 mb-4">
+        <div><p class="text-[9px] font-black mb-1 text-slate-500">631L 市價</p><input type="number" id="curP631" class="input-box price-input" oninput="run()"></div>
+        <div><p class="text-[9px] font-black mb-1 text-slate-500">QLD 市價</p><input type="number" id="curPQLD" class="input-box price-input" oninput="run()"></div>
+        <div><p class="text-[9px] font-black mb-1 text-slate-500">本金 R(萬)</p><input type="number" id="rInput" class="input-box !bg-green-50 !text-green-700" oninput="run()"></div>
+    </div>
+
+    <div class="card p-4 mb-4 border-2 border-slate-100">
         <div class="flex gap-2 mb-3">
-            <button id="btnBuy" onclick="setMode('buy')" class="flex-1 py-1 text-[10px] font-black rounded-lg tab-active">買入</button>
-            <button id="btnSell" onclick="setMode('sell')" class="flex-1 py-1 text-[10px] font-black rounded-lg tab-inactive">賣出</button>
+            <button id="btnBuy" onclick="setMode('buy')" class="flex-1 py-1.5 text-xs font-black rounded-lg tab-active">買入入庫</button>
+            <button id="btnSell" onclick="setMode('sell')" class="flex-1 py-1.5 text-xs font-black rounded-lg bg-slate-100 text-slate-400">賣出減倉</button>
         </div>
-        <div class="grid grid-cols-3 gap-2">
-            <select id="newType" class="input-box col-span-1"><option value="00631L">631L</option><option value="QLD">QLD</option></select>
-            <input type="number" id="newQty" class="input-box col-span-1" placeholder="股數">
-            <input type="number" id="newPrice" class="input-box col-span-1" placeholder="成交價">
+        <div class="grid grid-cols-3 gap-2 mb-2">
+            <select id="newType" class="input-box text-xs"><option value="00631L">00631L</option><option value="QLD">QLD</option></select>
+            <input type="number" id="newQty" class="input-box text-xs" placeholder="股數">
+            <input type="number" id="newPrice" class="input-box text-xs" placeholder="成交價">
         </div>
-        <button onclick="addTrade()" class="w-full mt-2 bg-blue-600 text-white font-black py-2 rounded-lg text-xs">新增至交易清單</button>
+        <button onclick="addTrade()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl text-sm shadow-lg active:scale-95 transition">確認新增紀錄</button>
     </div>
 
-    <div id="tradeList" class="space-y-2 mb-10"></div>
+    <h2 class="text-xs font-black text-slate-400 mb-2 px-1 uppercase tracking-widest">Transaction History</h2>
+    <div id="tradeList" class="space-y-2"></div>
 
-    <div class="fixed bottom-4 left-4 right-4">
-        <button onclick="calcBalance()" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-2xl active:scale-95 transition">
-            ⚖️ 執行 M=R 戰略平衡建議
+    <div class="fixed bottom-6 left-4 right-4 shadow-2xl">
+        <button onclick="calcBalance()" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3">
+            ⚖️ 執行 M=R 戰略平衡計算
         </button>
     </div>
 
-    <div id="modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-6 z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl w-full p-6 shadow-2xl max-w-sm">
-            <h3 class="font-black text-xl mb-4 text-slate-800">⚖️ 戰略平衡建議</h3>
+    <div id="modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-6 z-50 backdrop-blur-md">
+        <div class="bg-white rounded-3xl w-full p-6 max-w-sm shadow-2xl">
+            <h3 class="font-black text-xl mb-4 text-slate-800">戰略調整建議</h3>
             <div id="res" class="space-y-3"></div>
-            <button onclick="document.getElementById('modal').classList.add('hidden')" class="w-full mt-6 bg-slate-800 text-white py-3 rounded-xl font-bold">了解</button>
+            <button onclick="document.getElementById('modal').classList.add('hidden')" class="w-full mt-6 bg-slate-800 text-white py-4 rounded-xl font-black">收悉，開始操作</button>
         </div>
     </div>
 
@@ -119,33 +101,15 @@
             const ctx = document.getElementById('ratioChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    labels: ['00631L', 'QLD', 'R Cash'],
-                    datasets: [{
-                        data: [0, 0, 100],
-                        backgroundColor: ['#3b82f6', '#6366f1', '#10b981'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { cutout: '75%', plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
+                data: { datasets: [{ data: [1, 1, 1], backgroundColor: ['#3b82f6', '#6366f1', '#10b981'], borderWidth: 0 }] },
+                options: { cutout: '65%', plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
             });
-        }
-
-        async function fetchLivePrices() {
-            try {
-                const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/QLD');
-                const data = await res.json();
-                const qldPrice = data.chart.result[0].meta.regularMarketPrice;
-                if(qldPrice) document.getElementById('curPQLD').value = qldPrice.toFixed(2);
-                document.getElementById('updateTime').innerText = "報價已同步 " + new Date().toLocaleTimeString();
-                run();
-            } catch (e) { document.getElementById('updateTime').innerText = "手動模式"; run(); }
         }
 
         function setMode(mode) {
             currentMode = mode;
-            document.getElementById('btnBuy').className = mode === 'buy' ? 'flex-1 py-1 text-[10px] font-black rounded-lg tab-active' : 'flex-1 py-1 text-[10px] font-black rounded-lg tab-inactive';
-            document.getElementById('btnSell').className = mode === 'sell' ? 'flex-1 py-1 text-[10px] font-black rounded-lg tab-active' : 'flex-1 py-1 text-[10px] font-black rounded-lg tab-inactive';
+            document.getElementById('btnBuy').className = mode === 'buy' ? 'flex-1 py-1.5 text-xs font-black rounded-lg tab-active' : 'flex-1 py-1.5 text-xs font-black rounded-lg bg-slate-100 text-slate-400';
+            document.getElementById('btnSell').className = mode === 'sell' ? 'flex-1 py-1.5 text-xs font-black rounded-lg bg-red-600 text-white' : 'flex-1 py-1.5 text-xs font-black rounded-lg bg-slate-100 text-slate-400';
         }
 
         function addTrade() {
@@ -160,84 +124,99 @@
             run();
         }
 
-        function deleteTrade(id) { if(confirm("刪除？")) { trades = trades.filter(t => t.id !== id); localStorage.setItem('myTrades', JSON.stringify(trades)); run(); } }
+        function deleteTrade(id) {
+            if(confirm("確定刪除此筆交易？")) {
+                trades = trades.filter(t => t.id !== id);
+                localStorage.setItem('myTrades', JSON.stringify(trades));
+                run();
+            }
+        }
 
         function run() {
             const curP631 = parseFloat(document.getElementById('curP631').value) || 0;
             const curPQLD = parseFloat(document.getElementById('curPQLD').value) || 0;
-            const curRate = 32.5; // 固定匯率範例
+            const curRate = 32.5; 
             const rVal = (parseFloat(document.getElementById('rInput').value) || 0) * 10000;
             
-            let twCost = 0, twValue = 0, usCost = 0, usValue = 0, s631Q = 0, sQLDQ = 0;
+            let twCost = 0, twVal = 0, usCost = 0, usVal = 0;
 
             trades.forEach(t => {
-                const is631 = t.type === "00631L";
-                if(is631) {
+                if(t.type === "00631L") {
                     twCost += t.qty * t.price;
-                    twValue += t.qty * curP631;
-                    s631Q += t.qty;
+                    twVal += t.qty * curP631;
                 } else {
                     usCost += t.qty * t.price * curRate;
-                    usValue += t.qty * curPQLD * curRate;
-                    sQLDQ += t.qty;
+                    usVal += t.qty * curPQLD * curRate;
                 }
             });
 
-            const totalM = twValue + usValue;
+            const totalM = twVal + usVal;
             const totalAssets = totalM + rVal;
-            const aggProfit = (twValue + usValue) - (twCost + usCost);
 
-            // 介面更新
             document.getElementById('totalAssets').innerText = "NT$ " + Math.round(totalAssets).toLocaleString();
-            document.getElementById('totalMValue').innerText = Math.round(totalM/10000) + " 萬";
-            document.getElementById('totalRValue').innerText = Math.round(rVal/10000) + " 萬";
-            
-            document.getElementById('aggValue').innerText = "NT$ " + Math.round(totalM).toLocaleString();
-            document.getElementById('aggProfit').innerText = showPercent ? ((aggProfit/(twCost+usCost)*100).toFixed(2) + "%") : ("賺 NT$ " + Math.round(aggProfit).toLocaleString());
-            document.getElementById('aggProfit').className = aggProfit >= 0 ? "text-[10px] font-bold text-red-400" : "text-[10px] font-bold text-green-400";
+            document.getElementById('totalMValue').innerText = "NT$ " + Math.round(totalM).toLocaleString();
+            document.getElementById('totalRValue').innerText = "NT$ " + Math.round(rVal).toLocaleString();
 
-            document.getElementById('twValue').innerText = Math.round(twValue/10000) + " 萬";
-            document.getElementById('twProfit').innerText = showPercent ? ((twValue-twCost)/twCost*100).toFixed(1) + "%" : "賺 " + Math.round((twValue-twCost)/1000).toLocaleString() + "k";
-            document.getElementById('twProfit').className = (twValue-twCost) >= 0 ? "text-[10px] font-bold text-red-400" : "text-[10px] font-bold text-green-400";
+            document.getElementById('twValue').innerText = "現值 NT$ " + Math.round(twVal).toLocaleString();
+            document.getElementById('twProfit').innerText = showPercent ? (twCost ? ((twVal-twCost)/twCost*100).toFixed(2) + "%" : "0%") : (twVal-twCost).toLocaleString();
+            document.getElementById('twProfit').className = (twVal-twCost) >= 0 ? "text-red-400 font-black" : "text-green-400 font-black";
 
-            document.getElementById('usValue').innerText = Math.round(usValue/10000) + " 萬";
-            document.getElementById('usProfit').innerText = showPercent ? ((usValue-usCost)/usCost*100).toFixed(1) + "%" : "賺 " + Math.round((usValue-usCost)/1000).toLocaleString() + "k";
-            document.getElementById('usProfit').className = (usValue-usCost) >= 0 ? "text-[10px] font-bold text-red-400" : "text-[10px] font-bold text-green-400";
+            document.getElementById('usValue').innerText = "現值 NT$ " + Math.round(usVal).toLocaleString();
+            document.getElementById('usProfit').innerText = showPercent ? (usCost ? ((usVal-usCost)/usCost*100).toFixed(2) + "%" : "0%") : (usVal-usCost).toLocaleString();
+            document.getElementById('usProfit').className = (usVal-usCost) >= 0 ? "text-red-400 font-black" : "text-green-400 font-black";
 
-            // 清單與圖表
-            updateChart(twValue, usValue, rVal);
-            document.getElementById('ratioDisplay').innerText = `目前持有：631L ${Math.round(s631Q)}股 | QLD ${Math.round(sQLDQ)}股`;
-        }
+            if(chart) {
+                chart.data.datasets[0].data = [twVal || 0.1, usVal || 0.1, rVal || 0.1];
+                chart.update();
+            }
 
-        function updateChart(tw, us, r) {
-            if(!chart) return;
-            chart.data.datasets[0].data = [tw, us, r];
-            chart.update();
+            let listHtml = "";
+            trades.slice().reverse().forEach(t => {
+                const is631 = t.type === "00631L";
+                listHtml += `<div class="card p-4 flex justify-between items-center mb-2 border-l-4 ${t.qty>0?(is631?'border-blue-500':'border-indigo-500'):'border-red-500 bg-red-50/30'}">
+                    <div>
+                        <p class="text-[10px] font-black uppercase ${t.qty>0?'text-slate-400':'text-red-500'}">${t.qty>0?'Buy':'Sell'} ${t.type}</p>
+                        <p class="text-xs font-black">${Math.abs(t.qty).toLocaleString()} 股 @ ${t.price}</p>
+                    </div>
+                    <button onclick="deleteTrade(${t.id})" class="text-slate-300 p-2">✕</button>
+                </div>`;
+            });
+            document.getElementById('tradeList').innerHTML = listHtml;
         }
 
         function calcBalance() {
-            // ... (保留之前的平衡計算邏輯)
             const curP631 = parseFloat(document.getElementById('curP631').value) || 1;
             const curPQLD = parseFloat(document.getElementById('curPQLD').value) || 1;
             const rVal = (parseFloat(document.getElementById('rInput').value) || 0) * 10000;
             let s631 = 0, sQLD = 0;
             trades.forEach(t => { if(t.type==="00631L") s631 += t.qty; else sQLD += t.qty; });
-            const totalM = (s631 * curP631) + (sQLD * curPQLD * 32.5);
-            const totalAssets = totalM + rVal;
-            const targetAsset = totalAssets / 4;
-            const d631 = (targetAsset / curP631) - s631;
-            const dQLD = ((targetAsset / 32.5) / curPQLD) - sQLD;
+            const totalAssets = (s631 * curP631) + (sQLD * curPQLD * 32.5) + rVal;
+            const targetM = totalAssets / 2;
+            const targetEach = targetM / 2;
 
-            document.getElementById('res').innerHTML = `<p class='text-sm'>00631L: ${Math.round(d631)} 股</p><p class='text-sm'>QLD: ${Math.round(dQLD)} 股</p>`;
+            document.getElementById('res').innerHTML = `
+                <div class="p-3 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                    <p class="text-[10px] font-bold text-blue-500">00631L 建議持股</p>
+                    <p class="font-black text-slate-800">${Math.round(targetEach/curP631).toLocaleString()} 股</p>
+                </div>
+                <div class="p-3 bg-indigo-50 rounded-xl border-l-4 border-indigo-500">
+                    <p class="text-[10px] font-bold text-indigo-500">QLD 建議持股</p>
+                    <p class="font-black text-slate-800">${Math.round(targetEach/32.5/curPQLD).toLocaleString()} 股</p>
+                </div>
+                <div class="p-3 bg-green-50 rounded-xl border-l-4 border-green-500">
+                    <p class="text-[10px] font-bold text-green-500">現金 R 建議保留</p>
+                    <p class="font-black text-slate-800">NT$ ${Math.round(totalAssets/2).toLocaleString()}</p>
+                </div>
+            `;
             document.getElementById('modal').classList.remove('hidden');
         }
 
         window.onload = () => {
             initChart();
-            document.getElementById('curP631').value = 265;
-            document.getElementById('curPQLD').value = 108;
-            document.getElementById('rInput').value = 500;
-            fetchLivePrices();
+            document.getElementById('curP631').value = localStorage.getItem('curP631') || 265;
+            document.getElementById('curPQLD').value = localStorage.getItem('curPQLD') || 108;
+            document.getElementById('rInput').value = localStorage.getItem('rInput') || 500;
+            run();
         };
     </script>
 </body>
